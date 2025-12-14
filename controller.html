@@ -37,7 +37,7 @@ async function initMotion() {
     }
 
     // Connect to WebSocket (replace with your deployed Cloudflare Worker URL)
-    ws = new WebSocket("wss://my-motion-worker.workers.dev");
+    ws = new WebSocket("https://cold-cell-e3f1.sopheakneath1710.workers.dev/");
 
     ws.onopen = () => console.log("WebSocket connected!");
     ws.onclose = () => console.log("WebSocket disconnected");
@@ -71,3 +71,4 @@ document.body.addEventListener("click", () => {
 </script>
 </body>
 </html>
+
