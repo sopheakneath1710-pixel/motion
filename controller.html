@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Phone Motion Controller</title>
+  <style>
+    body {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      flex-direction: column;
+      font-family: Arial, sans-serif;
+      text-align: center;
+    }
+    button {
+      padding: 20px 40px;
+      font-size: 20px;
+      cursor: pointer;
+    }
+  </style>
+</head>
+<body>
+<h1>Phone Controller</h1>
+<p>Tap anywhere to enable motion control</p>
+
+<script>
+let ws;
+
+async function initMotion() {
+    // Request permission for iOS 13+ and other browsers
+    if (typeof DeviceMotionEvent !== 'undefined' && DeviceMotionEvent.requestPermission) {
+        const response = await DeviceMotionEvent.requestPermission();
+        if (response !== 'granted') {
+            alert("Permission denied!");
+            return;
+        }
+    }
+
+    // Connect to WebSocket (replace with your deployed Cloudflare Worker URL)
+    ws = new WebSocket("wss://my-motion-worker.workers.dev");
+
+    ws.onopen = () => console.log("WebSocket connected!");
+    ws.onclose = () => console.log("WebSocket disconnected");
+
+    // Tilt detection
+    window.addEventListener("deviceorientation", e => {
+        const gamma = e.gamma;
+        if(gamma > 15) ws.send(JSON.stringify({ tilt:"right", shake:false }));
+        else if(gamma < -15) ws.send(JSON.stringify({ tilt:"left", shake:false }));
+        else ws.send(JSON.stringify({ tilt:"center", shake:false }));
+    });
+
+    // Shake detection
+    let lastShake = 0;
+    window.addEventListener("devicemotion", e => {
+        const acc = e.accelerationIncludingGravity;
+        const magnitude = Math.sqrt(acc.x**2 + acc.y**2 + acc.z**2);
+        if(magnitude > 15 && Date.now() - lastShake > 500) {
+            lastShake = Date.now();
+            ws.send(JSON.stringify({ shake:true }));
+        }
+    });
+
+    alert("Controller connected! Move or shake your phone now.");
+}
+
+// Add a single tap anywhere on the screen to initialize motion
+document.body.addEventListener("click", () => {
+    if(!ws) initMotion();
+}, { once: true });
+</script>
+</body>
+</html>

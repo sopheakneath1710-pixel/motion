@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Phone Motion Game</title>
+  <script src="https://cdn.jsdelivr.net/npm/phaser@3/dist/phaser.min.js"></script>
+</head>
+<body>
+<h1>Phone Motion Game</h1>
+<div id="game-container"></div>
+
+<script>
+let config = {
+    type: Phaser.AUTO,
+    width: 600,
+    height: 400,
+    parent: "game-container",
+    scene: { preload, create, update }
+};
+let game = new Phaser.Game(config);
+let playerBox;
+
+function preload() {}
+function create() {
+    playerBox = this.add.rectangle(300, 200, 50, 50, 0x00ff00);
+
+    // Connect to WebSocket
+    const ws = new WebSocket("https://cold-cell-e3f1.sopheakneath1710.workers.dev/");
+    ws.onmessage = e => {
+        const data = JSON.parse(e.data);
+        if(!data) return;
+
+        if(data.tilt === "left") playerBox.x -= 10;
+        else if(data.tilt === "right") playerBox.x += 10;
+
+        if(data.shake) playerBox.fillColor = 0xff0000;
+        else playerBox.fillColor = 0x00ff00;
+    };
+}
+function update() {}
+</script>
+</body>
+</html>
